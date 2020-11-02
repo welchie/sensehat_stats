@@ -308,5 +308,4 @@ public class SenseHatData implements Serializable{
 	};
 	
 	
-	};
 }
