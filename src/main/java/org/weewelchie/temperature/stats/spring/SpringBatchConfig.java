@@ -28,67 +28,64 @@ import org.weewelchie.temperature.stats.beans.SenseHatData;
 public class SpringBatchConfig {
 
 	@Autowired
-    private JobBuilderFactory jobs;
- 
-    @Autowired
-    private StepBuilderFactory steps;
-    
-    @Value("csv/senslog_data.csv")
-    private Resource inputCsv;
-    
-    @Value("file:xml/output.xml")
-    private Resource outputXml;
-    
-    @Bean
-    public ItemReader<SenseHatData> itemReader()
-      throws UnexpectedInputException, ParseException {
-        FlatFileItemReader<SenseHatData> reader = new FlatFileItemReader<SenseHatData>();
-        DelimitedLineTokenizer tokenizer = new DelimitedLineTokenizer();
-        
-        String[] tokens = { "temp_p","humidity","pressure","pitch","roll","yaw","mag_x","mag_y","mag_z","accel_x","accel_y","accel_z","gyro_x","gyro_y","gyro_z","timestamp" };
-        tokenizer.setNames(tokens);
-        reader.setResource(inputCsv);
-        DefaultLineMapper<SenseHatData> lineMapper = 
-          new DefaultLineMapper<SenseHatData>();
-        lineMapper.setLineTokenizer(tokenizer);
-        lineMapper.setFieldSetMapper(new RecordFieldSetMapper());
-       reader.setLineMapper(lineMapper);
-        return reader;
-    }
-    
-    @Bean
-public ItemProcessor<SenseHatData, SenseHatData> itemProcessor() {
-    return new CustomItemProcessor();
-}
+	private JobBuilderFactory jobs;
 
-@Bean
-public ItemWriter<SenseHatData> itemWriter(Marshaller marshaller)
-  throws MalformedURLException {
-    StaxEventItemWriter<SenseHatData> itemWriter = 
-      new StaxEventItemWriter<SenseHatData>();
-    itemWriter.setMarshaller(marshaller);
-    itemWriter.setRootTagName("transactionRecord");
-    itemWriter.setResource(outputXml);
-    return itemWriter;
-}
+	@Autowired
+	private StepBuilderFactory steps;
 
-@Bean
-public Marshaller marshaller() {
-    Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-    marshaller.setClassesToBeBound(new Class[] { SenseHatData.class });
-    return marshaller;
-}
+	@Value("csv/senshat_data.csv")
+	private Resource inputCsv;
 
-@Bean
-protected Step step1(ItemReader<SenseHatData> reader,
-  ItemProcessor<SenseHatData, SenseHatData> processor,
-  ItemWriter<SenseHatData> writer) {
-    return steps.get("step1").<SenseHatData, SenseHatData> chunk(10)
-      .reader(reader).processor(processor).writer(writer).build();
-}
+	@Value("file:xml/output.xml")
+	private Resource outputXml;
 
-@Bean(name = "firstBatchJob")
-public Job job(@Qualifier("step1") Step step1) {
-    return jobs.get("firstBatchJob").start(step1).build();
-}
+	@Bean
+	public ItemReader<SenseHatData> itemReader() throws UnexpectedInputException, ParseException {
+		FlatFileItemReader<SenseHatData> reader = new FlatFileItemReader<SenseHatData>();
+		DelimitedLineTokenizer tokenizer = new DelimitedLineTokenizer();
+
+		String[] tokens = { "temp_p", "humidity", "pressure", "pitch", "roll", "yaw", "mag_x", "mag_y", "mag_z",
+				"accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z", "timestamp" };
+		tokenizer.setNames(tokens);
+		reader.setResource(inputCsv);
+		DefaultLineMapper<SenseHatData> lineMapper = new DefaultLineMapper<SenseHatData>();
+		lineMapper.setLineTokenizer(tokenizer);
+		lineMapper.setFieldSetMapper(new RecordFieldSetMapper());
+		reader.setLineMapper(lineMapper);
+		reader.setLinesToSkip(1);
+		return reader;
+	}
+
+	@Bean
+	public ItemProcessor<SenseHatData, SenseHatData> itemProcessor() {
+		return new CustomItemProcessor();
+	}
+
+	@Bean
+	public ItemWriter<SenseHatData> itemWriter(Marshaller marshaller) throws MalformedURLException {
+		StaxEventItemWriter<SenseHatData> itemWriter = new StaxEventItemWriter<SenseHatData>();
+		itemWriter.setMarshaller(marshaller);
+		itemWriter.setRootTagName("transactionRecord");
+		itemWriter.setResource(outputXml);
+		return itemWriter;
+	}
+
+	@Bean
+	public Marshaller marshaller() {
+		Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
+		marshaller.setClassesToBeBound(new Class[] { SenseHatData.class });
+		return marshaller;
+	}
+
+	@Bean
+	protected Step step1(ItemReader<SenseHatData> reader, ItemProcessor<SenseHatData, SenseHatData> processor,
+			ItemWriter<SenseHatData> writer) {
+		return steps.get("step1").<SenseHatData, SenseHatData>chunk(10).reader(reader).processor(processor)
+				.writer(writer).build();
+	}
+
+	@Bean(name = "firstBatchJob")
+	public Job job(@Qualifier("step1") Step step1) {
+		return jobs.get("firstBatchJob").start(step1).build();
+	}
 }

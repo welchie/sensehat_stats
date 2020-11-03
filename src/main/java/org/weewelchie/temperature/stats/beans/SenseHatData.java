@@ -3,6 +3,9 @@ package org.weewelchie.temperature.stats.beans;
 import java.io.Serializable;
 import java.util.Date;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name = "senseHatData")
 public class SenseHatData implements Serializable{
 
 	/**
