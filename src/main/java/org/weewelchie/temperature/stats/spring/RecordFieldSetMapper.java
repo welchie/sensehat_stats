@@ -1,5 +1,6 @@
 package org.weewelchie.temperature.stats.spring;
 
+import org.apache.log4j.Logger;
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.FieldSet;
 import org.springframework.validation.BindException;
@@ -7,6 +8,7 @@ import org.weewelchie.temperature.stats.beans.SenseHatData;
 
 public class RecordFieldSetMapper implements FieldSetMapper<SenseHatData> {
 	 
+	static Logger LOG = Logger.getLogger(RecordFieldSetMapper.class.getName());  
     public SenseHatData mapFieldSet(FieldSet fieldSet) throws BindException {
         SenseHatData sd = new SenseHatData();
         
@@ -29,6 +31,7 @@ public class RecordFieldSetMapper implements FieldSetMapper<SenseHatData> {
 		sd.setGyroZ(fieldSet.readString("gyro_z"));
 		sd.setTimestamp(fieldSet.readDate("timestamp"));
         
+		LOG.info(sd);
         return sd;
     }
 }
